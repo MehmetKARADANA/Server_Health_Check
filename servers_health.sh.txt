@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Configuration
+SERVER_LIST_FILE="servers.txt"  # File containing the list of server IP addresses
+REPORT_FILE="server_health_report.txt"  # Name of the report file
+EMAIL="karadanaxxx@gmail.com"  # Email address to send the report to
+SUBJECT="Server Health Report"  # Subject of the email
+INTERVAL=10  # Check interval (in seconds)
+
+# Function to send an email
+send_email() {
+    local report_file="$1"
+    local email="$2"
+    local subject="$3"
+
+    mail -s "$subject" "$email" < "$report_file"
+}
+
+# Function to check server availability
+check_servers() {
+    local server_list_file="$1"
+    local report_file="$2"
+
+    echo "Server Health Report - $(date)" > "$report_file"
+    echo "---------------------------------" >> "$report_file"
+
+    while IFS= read -r server; do
+        if ping -c 1 "$server" &> /dev/null; then
+            echo "$server: Reachable" >> "$report_file"
+        else
+            echo "$server: Not reachable" >> "$report_file"
+        fi
+    done < "$server_list_file"
+}
+
+# Main loop
+while true; do
+    check_servers "$SERVER_LIST_FILE" "$REPORT_FILE"
+    send_email "$REPORT_FILE" "$EMAIL" "$SUBJECT"
+    sleep "$INTERVAL"
+done

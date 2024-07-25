@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Function to check the health of the server
+check_server_health() {
+    server=$1
+    timeout=5
+
+    # Ping the server and measure response time
+    response=$(ping -c 1 -W $timeout "$server" 2>&1)
+
+    if [ $? -eq 0 ]; then
+        # Extract the response time from the ping output
+        response_time=$(echo "$response" | grep 'time=' | awk -F 'time=' '{print $2}' | awk '{print $1}')
+        echo "Server $server is healthy. Response time: $response_time ms"
+    else
+        echo "Error: Server $server is not reachable."
+    fi
+}
+
+# Main script
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <server_ip_or_url>"
+    exit 1
+fi
+
+server=$1
+check_server_health "$server"
